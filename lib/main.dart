@@ -64,7 +64,7 @@ class Login extends StatelessWidget {
                     color: Colors.lightBlue,
                     child: Text('Iniciar Sesión'),
                     onPressed: () {
-                    login(emailController.text, passwordController.text);
+                     login(context, emailController.text, passwordController.text);
                     },
                 )
               ),
@@ -90,7 +90,7 @@ class Login extends StatelessWidget {
     );
   }
 
-  Future<String> login(String email, String password) async {
+  Future<String> login(BuildContext context, String email, String password) async {
     return http.post("http://192.168.1.75/practica1_WS/api_login.php", body: jsonEncode(<String, String> {'username': email, 'password': password}))
     .then((http.Response response) {
       final int statusCode = response.statusCode;
@@ -172,7 +172,7 @@ class SignUp extends StatelessWidget {
                     color: Colors.lightBlue,
                     child: Text('Crear'),
                     onPressed: () {
-                      signUp(nameController.text, emailController.text, passwordController.text);
+                      signUp(context, nameController.text, emailController.text, passwordController.text);
                     },
                 )
               ),
@@ -183,7 +183,7 @@ class SignUp extends StatelessWidget {
     );
   }
 
-  Future<String> signUp(String name, String email, String password) async {
+  Future<String> signUp(BuildContext context, String name, String email, String password) async {
     return http.post("http://192.168.1.75/practica1_WS/api_signup.php", body: jsonEncode(<String, String> {'name': name, 'username': email, 'password': password}))
     .then((http.Response response) {
       final int statusCode = response.statusCode;
@@ -193,6 +193,12 @@ class SignUp extends StatelessWidget {
       } else {
         //Map<String, dynamic> responseJson = json.decode(response.body);
         print(jsonDecode(response.body));
+        Map<String, dynamic> responseJson = json.decode(response.body);
+        int signupStatus = responseJson["status"];
+
+        if (signupStatus == 1) {
+          Navigator.of(context).pop();
+        }
       }
     });
   }
