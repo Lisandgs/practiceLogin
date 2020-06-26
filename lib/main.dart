@@ -64,7 +64,11 @@ class Login extends StatelessWidget {
                     color: Colors.lightBlue,
                     child: Text('Iniciar Sesión'),
                     onPressed: () {
-                     login(context, emailController.text, passwordController.text);
+                      if (emailController.text == '' || passwordController.text == '') {
+                        loginDialog(context, 'Por favor, completa los campos.');
+                      } else {
+                        login(context, emailController.text, passwordController.text);
+                      }
                     },
                 )
               ),
@@ -91,7 +95,8 @@ class Login extends StatelessWidget {
   }
 
   Future<String> login(BuildContext context, String email, String password) async {
-    return http.post("http://192.168.1.75/practica1_WS/api_login.php", body: jsonEncode(<String, String> {'username': email, 'password': password}))
+    return http.post("http://192.168.1.75/practica1_WS/api_login.php", 
+    body: jsonEncode(<String, String> {'username': email, 'password': password}))
     .then((http.Response response) {
       final int statusCode = response.statusCode;
 
@@ -105,9 +110,34 @@ class Login extends StatelessWidget {
 
         if (loginStatus == 1) {
           print("Logeado!");
+          loginDialog(context, "Has iniciado sesión con exito!");
+        } else {
+          loginDialog(context, "Credenciales incorrectas.");
         }
       }
     });
+  }
+
+  void loginDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+          return AlertDialog(
+            content: Container(
+                width: double.maxFinite,
+                child: Text(message)
+            ),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("Ok"),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          );
+      }
+    );
   }
 }
 
@@ -144,11 +174,12 @@ class SignUp extends StatelessWidget {
                   controller: emailController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: "Email"
+                    labelText: "Email",
+                    hintText: "example@mail.com",
                   ),
                   keyboardType: TextInputType.emailAddress,
                   autovalidate: true,
-                  validator: (input) => input.isValidEmail() ? null : "Escribe un email valido",
+                  validator: (input) => input.isValidEmail() ? null : "Escribe un email valido.",
                 )
               ),
               Container(
@@ -161,7 +192,7 @@ class SignUp extends StatelessWidget {
                   ),
                   autovalidate: true,
                   obscureText: true,
-                  validator: (input) => input.isValidPassword() ? null : "Escribe una contraseña valido",
+                  validator: (_) => _.isValidPassword() ? null : "Escribe una contraseña valida.",
                 )
               ),
               Container(  
@@ -172,7 +203,11 @@ class SignUp extends StatelessWidget {
                     color: Colors.lightBlue,
                     child: Text('Crear'),
                     onPressed: () {
-                      signUp(context, nameController.text, emailController.text, passwordController.text);
+                      if (nameController.text == '' || emailController.text == '' || passwordController.text == '') {
+                        signUpDialog(context, 'Por favor, completa los campos.');
+                      } else {
+                        signUp(context, nameController.text, emailController.text, passwordController.text);
+                      }
                     },
                 )
               ),
@@ -198,9 +233,35 @@ class SignUp extends StatelessWidget {
 
         if (signupStatus == 1) {
           Navigator.of(context).pop();
-        }
+        } else if (signupStatus == 2){
+          signUpDialog(context, "El correo que elegiste está tomado");
+        } else {
+          signUpDialog(context, "Ocurrio un error en el registro");
+        } 
       }
     });
+  }
+
+  void signUpDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+          return AlertDialog(
+            content: Container(
+                width: double.maxFinite,
+                child: Text(message)
+            ),
+            actions: <Widget>[
+              FlatButton(
+                child: Text("Ok"),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          );
+      }
+    );
   }
   
 }
@@ -216,7 +277,7 @@ extension EmailValidator on String {
 extension PasswordValidator on String {
   bool isValidPassword() {
     return RegExp(
-            r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+            r'^(?:(?=.*?[A-Z])(?:(?=.*?[0-9])(?=.*?[-!@#$%^&*()_[\]{},.<>+=])|(?=.*?[a-z])(?:(?=.*?[0-9])|(?=.*?[-!@#$%^&*()_[\]{},.<>+=])))|(?=.*?[a-z])(?=.*?[0-9])(?=.*?[-!@#$%^&*()_[\]{},.<>+=]))[A-Za-z0-9!@#$%^&*()_[\]{},.<>+=-]{7,50}$')
         .hasMatch(this);
   }
 }
